@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>默格小屏助手</title>
+  <!-- 引入Tailwind CSS + 降级处理 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // 检测Tailwind是否加载成功，失败则加载备用样式
+    if (!window.tailwind) {
+      document.write(`
+        <style>
+          * {margin:0;padding:0;box-sizing:border-box;}
+          body {font-family:Arial, sans-serif;background:#F8FAFC;min-height:100vh;display:flex;flex-direction:column;}
+          .container {width:95%;max-width:1200px;margin:0 auto;padding:0 15px;}
+          .bg-white {background:white;}
+          .rounded-xl {border-radius:12px;}
+          .p-6 {padding:1.5rem;}
+          .p-8 {padding:2rem;}
+          .mb-6 {margin-bottom:1.5rem;}
+          .mb-8 {margin-bottom:2rem;}
+          .shadow-soft {box-shadow:0 4px 20px rgba(0,0,0,0.08);}
+          .hover\\:shadow-lg:hover {box-shadow:0 10px 25px rgba(0,0,0,0.1);}
+          .transition-all-300 {transition:all 300ms ease-in-out;}
+          button {cursor:pointer;border:none;padding:10px 20px;border-radius:8px;}
+          .bg-primary {background:#3B82F6;color:white;}
+          .bg-accent {background:#F43F5E;color:white;}
+          .hover\\:bg-primary\\/90:hover {background:rgba(59,130,246,0.9);}
+          .hover\\:bg-accent\\/90:hover {background:rgba(244,63,94,0.9);}
+          textarea, input[type="range"], select {width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:8px;}
+          textarea {height:120px;resize:none;}
+          .hidden {display:none;}
+          .grid {display:grid;gap:2rem;}
+          @media (min-width:768px) {.grid-cols-1\\/lg\\:grid-cols-2 {grid-template-columns:1fr 1fr;}}
+          .text-center {text-align:center;}
+          .py-8 {padding-top:2rem;padding-bottom:2rem;}
+          .py-12 {padding-top:3rem;padding-bottom:3rem;}
+          .flex {display:flex;}
+          .flex-col {flex-direction:column;}
+          .items-center {align-items:center;}
+          .justify-center {justify-content:center;}
+          .flex-grow {flex-grow:1;}
+          .text-xl {font-size:1.5rem;}
+          .text-dark {color:#1E293B;}
+          .text-secondary {color:#64748B;}
+          .text-primary {color:#3B82F6;}
+          .font-semibold {font-weight:600;}
+          .gap-4 {gap:1rem;}
+          .flex-wrap {flex-wrap:wrap;}
+          .cursor-pointer {cursor:pointer;}
+          .opacity-50 {opacity:0.5;}
+          .cursor-not-allowed {cursor:not-allowed;}
+          .border-primary {border-color:#3B82F6;}
+          .section-divider {border-top:1px dashed #e2e8f0;margin:1.5rem 0;padding-top:1.5rem;}
+          footer {background:#1E293B;color:white;padding:2rem 0;text-align:center;}
+        </style>
+      `);
+    }
+  </script>
+  <!-- 引入Font Awesome + 图标降级 -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <!-- 配置Tailwind自定义主题 -->
+  <script>
+    if (window.tailwind) {
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#3B82F6',
+              secondary: '#64748B',
+              accent: '#F43F5E',
+              dark: '#1E293B',
+            },
+            fontFamily: {
+              arial: ['Arial', 'sans-serif'],
+              heiti: ['Microsoft YaHei', 'Heiti SC', '黑体', 'sans-serif'],
+              sourceHan: ['Source Han Sans CN', '思源黑体', 'sans-serif'],
+            },
+          },
+        }
+      }
+    }
+  </script>
+  
+  <!-- 自定义工具类 -->
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .shadow-soft {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      }
+      .transition-all-300 {
+        transition: all 300ms ease-in-out;
+      }
+      .section-divider {
+        border-top: 1px dashed #e2e8f0;
+      }
+    }
+  </style>
+  
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #F8FAFC;
+    }
+    
+    /* 自定义滚动条 */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    
+    /* 图片预览容器 */
+    .preview-container {
+      position: relative;
+      width: 100%;
+      max-width: 152px;
+      margin: 0 auto;
+    }
+    
+    .image-placeholder {
+      width: 100%;
+      padding-top: 194.74%; /* 296/152 竖屏比例 */
+      background-color: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .image-placeholder:hover {
+      border-color: #3B82F6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+    
+    #canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      /* 关键：禁用Canvas默认平滑，保持像素锐利 */
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    
+    /* 移动端优化 */
+    @media (max-width: 768px) {
+      .cursor-pointer {
+        touch-action: manipulation;
+      }
+      button {
+        padding: 12px 24px;
+      }
+      textarea, input, select {
+        font-size: 16px;
+      }
+    }
+    
+    /* 兼容性提示 */
+    .compatibility-alert {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #F43F5E;
+      color: white;
+      padding: 10px;
+      text-align: center;
+      z-index: 9999;
+    }
+    
+    /* 选项组标题样式 */
+    .option-group-title {
+      font-size: 0.9rem;
+      color: #64748B;
+      margin-bottom: 0.75rem;
+      font-weight: 500;
+    }
+    
+    /* 对齐方式按钮样式优化 */
+    .align-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+    }
+    
+    /* 放大预览模态框 - 微信友好型 */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .modal-content {
+      position: relative;
+      width: 90%;
+      max-width: 304px; /* 原尺寸的2倍，保证清晰又不超屏 */
+      max-height: 90vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: scale(0.9);
+      transition: all 0.3s ease;
+    }
+    
+    .modal-overlay.active .modal-content {
+      transform: scale(1);
+    }
+    
+    .modal-image {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      /* 确保图片在微信中可长按保存 */
+      pointer-events: auto;
+      -webkit-touch-callout: default;
+      -webkit-user-select: auto;
+      user-select: auto;
+    }
+    
+    .close-modal {
+      position: absolute;
+      top: -40px;
+      right: 0;
+      color: white;
+      background: transparent;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 5px 10px;
+      z-index: 10;
+    }
+    
+    /* 微信保存提示 */
+    .wechat-tip {
+      position: absolute;
+      bottom: -50px;
+      left: 0;
+      right: 0;
+      color: white;
+      text-align: center;
+      font-size: 14px;
+      padding: 5px 0;
+    }
+    
+    /* 预览图提示文字 */
+    .preview-tooltip {
+      position: absolute;
+      bottom: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #64748B;
+      font-size: 12px;
+      text-align: center;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+  <!-- 兼容性提示 -->
+  <div id="compatibility-alert" class="compatibility-alert hidden">
+    您的浏览器版本过旧，部分功能可能无法正常使用，请升级浏览器或使用Chrome、Edge等现代浏览器！
+  </div>
+
+  <!-- 顶部导航 -->
+  <header class="bg-white shadow-sm py-4 px-6">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-[clamp(1.25rem,3vw,1.75rem)] font-bold text-primary">
+        默格小屏助手
+      </h1>
+      <!-- 移除右上角使用帮助和源码链接 -->
+    </div>
+  </header>
+
+  <!-- 主内容区 -->
+  <main class="flex-grow container mx-auto px-4 py-8 md:py-12">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+      <!-- 左侧：输入设置区 -->
+      <div class="bg-white rounded-xl shadow-soft p-6 md:p-8 transform hover:shadow-lg transition-all-300">
+        <h2 class="text-xl md:text-2xl font-semibold text-dark mb-6">
+          文字设置
+        </h2>
+        
+        <!-- 标题部分设置 -->
+        <div class="mb-8">
+          <div class="flex items-center mb-4">
+            <span class="inline-block w-3 h-3 rounded-full bg-primary mr-2"></span>
+            <h3 class="text-lg font-semibold text-dark">1. 头部标题设置</h3>
+          </div>
+          
+          <!-- 标题输入（默认填充“今日计划”） -->
+          <div class="mb-6">
+            <label for="title-input" class="block text-secondary font-medium mb-2">标题文字（建议≤8字）</label>
+            <textarea 
+              id="title-input" 
+              class="w-full h-28 p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none resize-none transition-all-300"
+              placeholder="请输入头部标题（如商品名称、分类标签）"
+            >今日计划</textarea>
+            <div class="text-right text-sm text-gray-400 mt-1">
+              <span id="title-char-count">4</span> 字符
+            </div>
+          </div>
+          
+          <!-- 标题字体选择（默认选中黑体） -->
+          <div class="mb-6">
+            <p class="option-group-title">选择字体</p>
+            <select id="title-font" class="border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all-300">
+              <option value="arial">Arial（纤细清晰）</option>
+              <option value="heiti" selected>黑体（粗实醒目，默认）</option>
+              <option value="sourceHan">思源黑体（平衡美观）</option>
+            </select>
+          </div>
+          
+          <!-- 标题大小设置（默认28px，保持不变） -->
+          <div class="mb-6">
+            <div class="flex justify-between items-center mb-2">
+              <label for="title-font-size" class="block text-secondary font-medium">文字大小（24px-34px）</label>
+              <span id="title-font-size-value" class="text-primary font-medium">28px</span>
+            </div>
+            <input 
+              type="range" 
+              id="title-font-size" 
+              min="24" 
+              max="34" 
+              value="28" 
+              class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
+            >
+          </div>
+          
+          <!-- 标题颜色选择（默认选中红色） -->
+          <div class="mb-6">
+            <p class="option-group-title">文字颜色</p>
+            <div class="flex space-x-4">
+              <label class="cursor-pointer flex items-center">
+                <input type="radio" name="title-color" value="#000000" class="sr-only peer">
+                <span class="w-8 h-8 rounded-full bg-black border-2 border-transparent peer-checked:border-primary transition-all-300 mr-2"></span>
+                <span class="text-dark">纯黑色</span>
+              </label>
+              <label class="cursor-pointer flex items-center">
+                <input type="radio" name="title-color" value="#FF0000" class="sr-only peer" checked>
+                <span class="w-8 h-8 rounded-full bg-red-600 border-2 border-transparent peer-checked:border-primary transition-all-300 mr-2"></span>
+                <span class="text-dark">红色（默认）</span>
+              </label>
+            </div>
+          </div>
+          
+          <!-- 标题对齐方式（默认居中，保持不变）- 移除emoji改用文字 -->
+          <div>
+            <p class="option-group-title">对齐方式</p>
+            <div class="flex space-x-4 flex-wrap">
+              <label class="cursor-pointer flex items-center">
+                <input type="radio" name="title-align" value="left" class="sr-only peer">
+                <span class="w-8 h-8 flex items-center justify-center bg-gray-100 border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/10 rounded transition-all-300 mr-2 align-btn">
+                  左
+                </span>
+                <span class="text-dark">左对齐</span>
+              </label>
+              <label class="cursor-pointer flex items-center">
+                <input type="radio" name="title-align" value="center" class="sr-only peer" checked>
+                <span class="w-8 h-8 flex items-center justify-center bg-gray-100 border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/10 rounded transition-all-300 mr-2 align-btn">
+                  中
+                </span>
+                <span class="text-dark">居中（默认）</span>
+              </label>
+              <label class="cursor-pointer flex items-center">
+                <input type="radio" name="title-align" value="right" class="sr-only peer">
+                <span class="w-8 h-8 flex items-center justify-center bg-gray-100 border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/10 rounded transition-all-300 mr-2 align-btn">
+                  右
+                </span>
+                <span class="text-dark">右对齐</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 正文部分设置 -->
+        <div>
+          <div class="flex items-center mb-4">
+            <span class="inline-block w-3 h-3 rounded-full bg-accent mr-2"></span>
+            <h3 class="text-lg font-semibold text-dark">2. 正文内容设置</h3>
+          </div>
+          
+          <!-- 正文输入（默认填充4行样稿：9:00、模拟考试、15:00、休息一下） -->
+          <div class="mb-6">
+            <label for="content-input" class="block text-secondary font-medium mb-2">正文文字（建议≤10行，每行≤6字）</label>
+            <textarea 
+              id="content-input" 
+              class="w-full h-60 p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none resize-none transition-all-300"
+              placeholder="请输入正文内容（如价格、规格、描述）"
+            >9:00
+模拟考试
+15:00
+休息一下</textarea>
+            <div class="text-right text-sm text-gray-400 mt-1">
+              <span id="content-char-count">14</span> 字符
+            </div>
+          </div>
+          
+          <!-- 正文字体选择（默认Arial） -->
+          <div class="mb-6">
+            <p class="option-group-title">选择字体</p>
+            <select id="content-font" class="border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all-300">
+              <option value="arial" selected>Arial（纤细清晰，默认）</option>
+              <option value="heiti">黑体（粗实醒目）</option>
+              <option value="sourceHan">思源黑体（平衡美观）</option>
+            </select>
+          </div>
+          
+          <!-- 正文大小设置（默认18px） -->
+          <div class="mb-6">
+            <div class="flex justify-between items-center mb-2">
+              <label for="content-font-size" class="block text-secondary font-medium">文字大小（16px-28px）</label>
+              <span id="content-font-size-value" class="text-primary font-medium">18px</span>
+            </div>
+            <input 
+              type="range" 
+              id="content-font-size" 
+              min="16" 
+              max="28" 
+              value="18" 
+              class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
+            >
+          </div>
+          
+          <!-- 正文颜色选择（默认纯黑色） -->
+          <div class="mb-6">
+            <p class="option-group-title">文字颜色</p>
+            <div class="flex space-x-4">
+              <label class="cursor-pointer flex items-center">
+                <input type="radio" name="content-color" value="#000000" class="sr-only peer" checked>
+                <span class="w-8 h-8 rounded-full bg-black border-2 border-transparent peer-checked:border-primary transition-all-300 mr-2"></span>
+                <span class="text-dark">纯黑色（默认）</span>
+              </label>
+              <label class="cursor-pointer flex items-center">
+                <input type="radio" name="content-color" value="#FF0000" class="sr-only peer">
+                <span class="w-8 h-8 rounded-full bg-red-600 border-2 border-transparent peer-checked:border-primary transition-all-300 mr-2"></span>
+                <span class="text-dark">红色</span>
+              </label>
+            </div>
+          </div>
+          
+          <!-- 正文对齐方式（默认左对齐）- 移除emoji改用文字 -->
+          <div>
+            <p class="option-group-title">对齐方式</p>
+            <div class="flex space-x-4 flex-wrap">
+              <label class="cursor-pointer flex items-center">
+                <input type="radio" name="content-align" value="left" class="sr-only peer" checked>
+                <span class="w-8 h-8 flex items-center justify-center bg-gray-100 border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/10 rounded transition-all-300 mr-2 align-btn">
+                  左
+                </span>
+                <span class="text-dark">左对齐（默认）</span>
+              </label>
+              <label class="cursor-pointer flex items-center">
+                <input type="radio" name="content-align" value="center" class="sr-only peer">
+                <span class="w-8 h-8 flex items-center justify-center bg-gray-100 border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/10 rounded transition-all-300 mr-2 align-btn">
+                  中
+                </span>
+                <span class="text-dark">居中</span>
+              </label>
+              <label class="cursor-pointer flex items-center">
+                <input type="radio" name="content-align" value="right" class="sr-only peer">
+                <span class="w-8 h-8 flex items-center justify-center bg-gray-100 border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/10 rounded transition-all-300 mr-2 align-btn">
+                  右
+                </span>
+                <span class="text-dark">右对齐</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 操作按钮 -->
+        <div class="flex flex-col sm:flex-row gap-4 mt-8">
+          <button 
+            id="generate-btn" 
+            class="flex-1 bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-lg transition-all-300 flex items-center justify-center"
+          >
+            <span class="icon">✨</span> <span class="mr-2">生成图片</span>
+          </button>
+          <button 
+            id="download-btn" 
+            class="flex-1 bg-accent hover:bg-accent/90 text-white font-medium py-3 px-6 rounded-lg transition-all-300 flex items-center justify-center"
+            disabled
+          >
+            <span class="icon">📥</span> <span class="mr-2">下载图片</span>
+          </button>
+        </div>
+        
+        <!-- 移除提示信息 -->
+      </div>
+      
+      <!-- 右侧：预览区域 -->
+      <div class="flex flex-col items-center justify-center">
+        <h2 class="text-xl md:text-2xl font-semibold text-dark mb-6 self-start">
+          图片预览
+        </h2>
+        
+        <!-- 预览容器 -->
+        <div class="preview-container mb-8 relative">
+          <div class="image-placeholder" id="preview-click-area">
+            <canvas id="canvas" width="152" height="296"></canvas>
+            <!-- 预览提示文字 -->
+            <div class="preview-tooltip hidden" id="preview-tooltip">点击放大查看 | 微信长按保存</div>
+          </div>
+        </div>
+        
+        <!-- 简化预览提示 -->
+        <div id="preview-placeholder" class="text-center py-12 text-gray-400">
+          <span class="icon text-5xl mb-4 opacity-30">🖼️</span>
+          <p>点击"生成图片"按钮查看预览</p>
+        </div>
+        
+        <div id="preview-success" class="text-center py-4 text-green-600 hidden">
+          <span class="icon">✅</span> <span class="ml-1">图片生成成功！</span>
+        </div>
+        
+        <!-- 移除图片尺寸信息区域 -->
+      </div>
+    </div>
+  </main>
+
+  <!-- 放大预览模态框 -->
+  <div class="modal-overlay" id="image-modal">
+    <div class="modal-content">
+      <img src="" alt="放大预览图" class="modal-image" id="modal-image">
+      <button class="close-modal" id="close-modal">×</button>
+      <div class="wechat-tip">微信长按图片可保存</div>
+    </div>
+  </div>
+
+  <!-- 页脚 -->
+  <footer class="bg-dark text-white py-8">
+    <div class="container mx-auto px-4 text-center">
+      <p class="text-gray-400">© 2025 默格研习社开源</p>
+    </div>
+  </footer>
+
+  <!-- JavaScript 逻辑 - 新增微信友好型放大预览功能 -->
+  <script>
+    // 浏览器兼容性检测
+    function checkBrowserCompatibility() {
+      const canvas = document.createElement('canvas');
+      const isCompatible = !!(
+        canvas.getContext && 
+        canvas.getContext('2d') && 
+        typeof Promise !== 'undefined' && 
+        typeof Array.prototype.forEach !== 'undefined'
+      );
+      
+      if (!isCompatible) {
+        document.getElementById('compatibility-alert').classList.remove('hidden');
+      }
+      return isCompatible;
+    }
+    
+    const isBrowserCompatible = checkBrowserCompatibility();
+    
+    // 获取DOM元素（标题相关）
+    const titleInput = document.getElementById('title-input');
+    const titleFont = document.getElementById('title-font');
+    const titleFontSize = document.getElementById('title-font-size');
+    const titleFontSizeValue = document.getElementById('title-font-size-value');
+    const titleColorRadios = document.querySelectorAll('input[name="title-color"]');
+    const titleAlignRadios = document.querySelectorAll('input[name="title-align"]');
+    const titleCharCount = document.getElementById('title-char-count');
+    
+    // 获取DOM元素（正文相关）
+    const contentInput = document.getElementById('content-input');
+    const contentFont = document.getElementById('content-font');
+    const contentFontSize = document.getElementById('content-font-size');
+    const contentFontSizeValue = document.getElementById('content-font-size-value');
+    const contentColorRadios = document.querySelectorAll('input[name="content-color"]');
+    const contentAlignRadios = document.querySelectorAll('input[name="content-align"]');
+    const contentCharCount = document.getElementById('content-char-count');
+    
+    // 公共元素
+    const generateBtn = document.getElementById('generate-btn');
+    const downloadBtn = document.getElementById('download-btn');
+    const canvas = document.getElementById('canvas');
+    const ctx = isBrowserCompatible ? canvas.getContext('2d') : null;
+    const previewPlaceholder = document.getElementById('preview-placeholder');
+    const previewSuccess = document.getElementById('preview-success');
+    const previewClickArea = document.getElementById('preview-click-area');
+    const previewTooltip = document.getElementById('preview-tooltip');
+    
+    // 放大预览相关元素
+    const imageModal = document.getElementById('image-modal');
+    const modalImage = document.getElementById('modal-image');
+    const closeModal = document.getElementById('close-modal');
+    
+    // 字体映射表（关键：将选择值转为实际字体家族）
+    const fontMap = {
+      arial: 'Arial, sans-serif',
+      heiti: 'Microsoft YaHei, Heiti SC, 黑体, sans-serif',
+      sourceHan: 'Source Han Sans CN, 思源黑体, sans-serif'
+    };
+    
+    // 初始化画布（纯白背景 + 抗锯齿优化）
+    function initCanvas() {
+      if (!ctx) return;
+      
+      // 关键优化1：设置Canvas渲染质量
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // 关键优化2：禁用抗锯齿（让文字边缘更锐利）
+      ctx.imageSmoothingEnabled = false;
+      ctx.mozImageSmoothingEnabled = false;
+      ctx.webkitImageSmoothingEnabled = false;
+      ctx.msImageSmoothingEnabled = false;
+      
+      ctx.save();
+    }
+    
+    // 页面加载初始化（更新默认配置的字符计数）
+    window.addEventListener('load', () => {
+      if (isBrowserCompatible) {
+        initCanvas();
+        // 初始化字符计数（匹配默认填充内容：标题4字符，正文14字符）
+        titleCharCount.textContent = titleInput.value.length;
+        contentCharCount.textContent = contentInput.value.length;
+      } else {
+        alert('您的浏览器不支持Canvas功能，无法生成图片，请升级浏览器！');
+      }
+      
+      // 初始化模态框事件
+      initModalEvents();
+    });
+    
+    // 初始化放大预览模态框事件
+    function initModalEvents() {
+      // 点击预览图打开模态框
+      previewClickArea.addEventListener('click', () => {
+        if (downloadBtn.disabled) return; // 未生成图片时不触发
+        
+        // 获取Canvas的dataURL并设置到模态框图片
+        const dataURL = canvas.toDataURL('image/png', 1.0);
+        modalImage.src = dataURL;
+        
+        // 显示模态框
+        imageModal.classList.add('active');
+        // 禁止背景滚动
+        document.body.style.overflow = 'hidden';
+      });
+      
+      // 关闭模态框
+      closeModal.addEventListener('click', closeModalHandler);
+      
+      // 点击模态框背景关闭
+      imageModal.addEventListener('click', (e) => {
+        if (e.target === imageModal) {
+          closeModalHandler();
+        }
+      });
+      
+      // 键盘ESC关闭
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && imageModal.classList.contains('active')) {
+          closeModalHandler();
+        }
+      });
+      
+      // 生成图片后显示提示文字
+      generateBtn.addEventListener('click', () => {
+        setTimeout(() => {
+          if (!downloadBtn.disabled) {
+            previewTooltip.classList.remove('hidden');
+          }
+        }, 200);
+      });
+    }
+    
+    // 关闭模态框处理函数
+    function closeModalHandler() {
+      imageModal.classList.remove('active');
+      document.body.style.overflow = '';
+      // 延迟清空图片src，避免闪烁
+      setTimeout(() => {
+        modalImage.src = '';
+      }, 300);
+    }
+    
+    // 标题字符计数
+    titleInput.addEventListener('input', () => {
+      titleCharCount.textContent = titleInput.value.length;
+      // 限制标题最大字符数
+      if (titleInput.value.length > 8) {
+        titleInput.value = titleInput.value.slice(0, 8);
+        titleCharCount.textContent = 8;
+      }
+    });
+    
+    // 正文字符计数
+    contentInput.addEventListener('input', () => {
+      contentCharCount.textContent = contentInput.value.length;
+    });
+    
+    // 标题字号滑块更新
+    titleFontSize.addEventListener('input', () => {
+      titleFontSizeValue.textContent = `${titleFontSize.value}px`;
+    });
+    
+    // 正文字号滑块更新（默认值18px）
+    contentFontSize.addEventListener('input', () => {
+      contentFontSizeValue.textContent = `${contentFontSize.value}px`;
+    });
+    
+    // 获取标题配置（默认红色黑体28px居中）
+    function getTitleConfig() {
+      let color = '#FF0000'; // 默认红色
+      titleColorRadios.forEach(radio => radio.checked && (color = radio.value));
+      
+      let align = 'center'; // 默认居中
+      titleAlignRadios.forEach(radio => radio.checked && (align = radio.value));
+      
+      return {
+        text: titleInput.value.trim(),
+        font: fontMap[titleFont.value], // 默认黑体
+        fontSize: parseInt(titleFontSize.value), // 默认28px
+        color: color,
+        align: align
+      };
+    }
+    
+    // 获取正文配置（默认黑色Arial18px左对齐）
+    function getContentConfig() {
+      let color = '#000000'; // 默认黑色
+      contentColorRadios.forEach(radio => radio.checked && (color = radio.value));
+      
+      let align = 'left'; // 默认左对齐
+      contentAlignRadios.forEach(radio => radio.checked && (align = radio.value));
+      
+      return {
+        text: contentInput.value.trim(),
+        font: fontMap[contentFont.value], // 默认Arial
+        fontSize: parseInt(contentFontSize.value), // 默认18px
+        color: color,
+        align: align
+      };
+    }
+    
+    // 绘制单行文字（优化清晰度）
+    function drawSingleLineText(config, yPosition) {
+      if (!ctx || !config.text) return;
+      
+      // 关键优化3：使用精确的字体大小，避免小数像素导致模糊
+      const exactFontSize = Math.round(config.fontSize);
+      ctx.font = `${exactFontSize}px ${config.font}`;
+      ctx.textAlign = config.align;
+      // 关键优化4：使用top对齐方式，避免垂直居中导致的亚像素偏移
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = config.color;
+      
+      const canvasWidth = canvas.width;
+      const padding = 15;
+      let startX;
+      
+      switch(config.align) {
+        case 'left': startX = padding; break;
+        case 'right': startX = canvasWidth - padding; break;
+        default: startX = canvasWidth / 2;
+      }
+      
+      // 关键优化5：确保绘制位置是整数坐标，避免亚像素渲染
+      const x = Math.round(startX);
+      const y = Math.round(yPosition);
+      
+      // 处理标题超长截取
+      let displayText = config.text;
+      const textWidth = ctx.measureText(displayText).width;
+      if (textWidth > canvasWidth - 2 * padding) {
+        displayText = displayText.slice(0, 6) + '...';
+      }
+      
+      // 关键优化6：绘制两次（轻微偏移）增强边缘锐度
+      ctx.fillText(displayText, x, y);
+      ctx.fillText(displayText, x + 0.5, y);
+    }
+    
+    // 绘制多行正文（优化清晰度）
+    function drawMultiLineText(config, startY) {
+      if (!ctx || !config.text) return;
+      
+      // 关键优化3：使用精确的字体大小
+      const exactFontSize = Math.round(config.fontSize);
+      ctx.font = `${exactFontSize}px ${config.font}`;
+      ctx.textAlign = config.align;
+      ctx.textBaseline = 'top'; // 优化垂直对齐
+      ctx.fillStyle = config.color;
+      
+      const canvasWidth = canvas.width;
+      const padding = 15;
+      const maxWidth = canvasWidth - 2 * padding;
+      // 行高优化：1.3倍字号，保持整数行高
+      const lineHeight = Math.round(exactFontSize * 1.3);
+      
+      // 换行处理（适配4行独立文本）
+      const rawLines = config.text.split(/\r?\n/);
+      const lines = [];
+      rawLines.forEach(line => {
+        if (!line.trim()) {
+          lines.push('');
+          return;
+        }
+        let currentLine = '';
+        const words = line.split(/\s+/);
+        words.forEach(word => {
+          const testLine = currentLine ? `${currentLine} ${word}` : word;
+          if (ctx.measureText(testLine).width <= maxWidth || !currentLine) {
+            currentLine = testLine;
+          } else {
+            lines.push(currentLine);
+            currentLine = word;
+          }
+        });
+        currentLine && lines.push(currentLine);
+      });
+      
+      // 最大10行限制
+      const maxLines = 10;
+      const finalLines = lines.slice(0, maxLines);
+      if (lines.length > maxLines) {
+        finalLines[maxLines - 1] = finalLines[maxLines - 1].slice(0, 4) + '...';
+      }
+      
+      // 计算每行位置（确保整数坐标）
+      finalLines.forEach((line, index) => {
+        const y = Math.round(startY + (index * lineHeight));
+        // 防止文字超出画布底部
+        if (y + exactFontSize > canvas.height - padding) return;
+        
+        let startX;
+        switch(config.align) {
+          case 'left': startX = padding; break;
+          case 'right': startX = canvasWidth - padding; break;
+          default: startX = canvasWidth / 2;
+        }
+        const x = Math.round(startX);
+        
+        // 关键优化6：双重绘制增强锐度
+        line.trim() && ctx.fillText(line, x, y);
+        line.trim() && ctx.fillText(line, x + 0.5, y);
+      });
+    }
+    
+    // 核心生成函数（保持原有逻辑）
+    function generateImage() {
+      if (!isBrowserCompatible) return;
+      
+      initCanvas();
+      
+      const titleConfig = getTitleConfig();
+      const contentConfig = getContentConfig();
+      
+      // 标题靠顶布局（整数坐标）
+      const titleY = Math.round(15 + (titleConfig.fontSize / 2));
+      // 正文起始位置（整数坐标）
+      const contentStartY = Math.round(titleY + titleConfig.fontSize + 10);
+      
+      // 绘制标题
+      drawSingleLineText(titleConfig, titleY);
+      
+      // 绘制正文
+      drawMultiLineText(contentConfig, contentStartY);
+      
+      // 更新UI状态
+      previewPlaceholder.classList.add('hidden');
+      previewSuccess.classList.remove('hidden');
+      downloadBtn.disabled = false;
+      previewTooltip.classList.remove('hidden'); // 显示点击提示
+    }
+    
+    // 生成按钮点击事件
+    generateBtn.addEventListener('click', () => {
+      const titleText = titleInput.value.trim();
+      const contentText = contentInput.value.trim();
+      
+      if (!titleText && !contentText) {
+        alert('请至少输入标题或正文内容');
+        return;
+      }
+      
+      generateBtn.classList.add('animate-pulse');
+      setTimeout(() => {
+        generateImage();
+        generateBtn.classList.remove('animate-pulse');
+      }, 150);
+    });
+    
+    // 下载按钮点击事件（保持原有逻辑）
+    downloadBtn.addEventListener('click', () => {
+      if (!isBrowserCompatible) {
+        alert('您的浏览器不支持下载功能，请升级！');
+        return;
+      }
+      
+      try {
+        const link = document.createElement('a');
+        const timestamp = new Date().getTime();
+        link.download = `默格小屏助手_${timestamp}.png`;
+        document.body.appendChild(link);
+        
+        // 关键优化7：使用高质量PNG导出
+        const dataURL = canvas.toDataURL('image/png', 1.0);
+        link.href = dataURL;
+        
+        // Safari兼容处理
+        if (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome')) {
+          const blob = dataURLToBlob(dataURL);
+          const url = URL.createObjectURL(blob);
+          link.href = url;
+          link.click();
+          URL.revokeObjectURL(url);
+        } else {
+          link.click();
+        }
+        
+        document.body.removeChild(link);
+        alert('图片下载成功！微信用户也可点击预览图长按保存');
+      } catch (error) {
+        console.error('下载失败：', error);
+        alert('图片下载失败，请点击预览图后长按保存（微信适用）！');
+      }
+    });
+    
+    // dataURL转Blob（兼容Safari）
+    function dataURLToBlob(dataURL) {
+      const arr = dataURL.split(',');
+      const mime = arr[0].match(/:(.*?);/)[1];
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      return new Blob([u8arr], { type: mime });
+    }
+    
+    // 窗口大小变化重新绘制
+    window.addEventListener('resize', () => {
+      if (!isBrowserCompatible) return;
+      
+      const titleText = titleInput.value.trim();
+      const contentText = contentInput.value.trim();
+      
+      if (titleText || contentText) {
+        clearTimeout(window.resizeTimer);
+        window.resizeTimer = setTimeout(generateImage, 200);
+      }
+    });
+  </script>
+</body>
+</html>
