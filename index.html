@@ -201,8 +201,12 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 24px;
-      height: 24px;
+      width: 70px;
+      height: 32px;
+      font-size: 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
     
     /* 放大预览模态框 - 微信友好型 */
@@ -380,30 +384,21 @@
             </div>
           </div>
           
-          <!-- 标题对齐方式（默认居中，保持不变）- 移除emoji改用文字 -->
+          <!-- 标题对齐方式（默认居中，保持不变）- 简化为纯按钮 -->
           <div>
             <p class="option-group-title">对齐方式</p>
-            <div class="flex space-x-4 flex-wrap">
-              <label class="cursor-pointer flex items-center">
+            <div class="flex space-x-2">
+              <label class="cursor-pointer">
                 <input type="radio" name="title-align" value="left" class="sr-only peer">
-                <span class="w-8 h-8 flex items-center justify-center bg-gray-100 border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/10 rounded transition-all-300 mr-2 align-btn">
-                  左
-                </span>
-                <span class="text-dark">左对齐</span>
+                <span class="align-btn bg-gray-100 border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/10">左对齐</span>
               </label>
-              <label class="cursor-pointer flex items-center">
+              <label class="cursor-pointer">
                 <input type="radio" name="title-align" value="center" class="sr-only peer" checked>
-                <span class="w-8 h-8 flex items-center justify-center bg-gray-100 border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/10 rounded transition-all-300 mr-2 align-btn">
-                  中
-                </span>
-                <span class="text-dark">居中（默认）</span>
+                <span class="align-btn bg-gray-100 border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/10">居中</span>
               </label>
-              <label class="cursor-pointer flex items-center">
+              <label class="cursor-pointer">
                 <input type="radio" name="title-align" value="right" class="sr-only peer">
-                <span class="w-8 h-8 flex items-center justify-center bg-gray-100 border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/10 rounded transition-all-300 mr-2 align-btn">
-                  右
-                </span>
-                <span class="text-dark">右对齐</span>
+                <span class="align-btn bg-gray-100 border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/10">右对齐</span>
               </label>
             </div>
           </div>
@@ -475,49 +470,33 @@
             </div>
           </div>
           
-          <!-- 正文对齐方式（默认左对齐）- 移除emoji改用文字 -->
+          <!-- 正文对齐方式（默认左对齐）- 简化为纯按钮 -->
           <div>
             <p class="option-group-title">对齐方式</p>
-            <div class="flex space-x-4 flex-wrap">
-              <label class="cursor-pointer flex items-center">
+            <div class="flex space-x-2">
+              <label class="cursor-pointer">
                 <input type="radio" name="content-align" value="left" class="sr-only peer" checked>
-                <span class="w-8 h-8 flex items-center justify-center bg-gray-100 border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/10 rounded transition-all-300 mr-2 align-btn">
-                  左
-                </span>
-                <span class="text-dark">左对齐（默认）</span>
+                <span class="align-btn bg-gray-100 border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/10">左对齐</span>
               </label>
-              <label class="cursor-pointer flex items-center">
+              <label class="cursor-pointer">
                 <input type="radio" name="content-align" value="center" class="sr-only peer">
-                <span class="w-8 h-8 flex items-center justify-center bg-gray-100 border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/10 rounded transition-all-300 mr-2 align-btn">
-                  中
-                </span>
-                <span class="text-dark">居中</span>
+                <span class="align-btn bg-gray-100 border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/10">居中</span>
               </label>
-              <label class="cursor-pointer flex items-center">
+              <label class="cursor-pointer">
                 <input type="radio" name="content-align" value="right" class="sr-only peer">
-                <span class="w-8 h-8 flex items-center justify-center bg-gray-100 border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/10 rounded transition-all-300 mr-2 align-btn">
-                  右
-                </span>
-                <span class="text-dark">右对齐</span>
+                <span class="align-btn bg-gray-100 border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary/10">右对齐</span>
               </label>
             </div>
           </div>
         </div>
         
-        <!-- 操作按钮 -->
+        <!-- 操作按钮 - 只保留生成按钮 -->
         <div class="flex flex-col sm:flex-row gap-4 mt-8">
           <button 
             id="generate-btn" 
             class="flex-1 bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-lg transition-all-300 flex items-center justify-center"
           >
-            <span class="icon">✨</span> <span class="mr-2">生成图片</span>
-          </button>
-          <button 
-            id="download-btn" 
-            class="flex-1 bg-accent hover:bg-accent/90 text-white font-medium py-3 px-6 rounded-lg transition-all-300 flex items-center justify-center"
-            disabled
-          >
-            <span class="icon">📥</span> <span class="mr-2">下载图片</span>
+            生成图片
           </button>
         </div>
         
@@ -546,7 +525,7 @@
         </div>
         
         <div id="preview-success" class="text-center py-4 text-green-600 hidden">
-          <span class="icon">✅</span> <span class="ml-1">图片生成成功！</span>
+          <span class="icon">✅</span> <span class="ml-1">图片生成成功！点击预览图长按保存</span>
         </div>
         
         <!-- 移除图片尺寸信息区域 -->
@@ -610,7 +589,6 @@
     
     // 公共元素
     const generateBtn = document.getElementById('generate-btn');
-    const downloadBtn = document.getElementById('download-btn');
     const canvas = document.getElementById('canvas');
     const ctx = isBrowserCompatible ? canvas.getContext('2d') : null;
     const previewPlaceholder = document.getElementById('preview-placeholder');
@@ -667,16 +645,16 @@
     function initModalEvents() {
       // 点击预览图打开模态框
       previewClickArea.addEventListener('click', () => {
-        if (downloadBtn.disabled) return; // 未生成图片时不触发
-        
-        // 获取Canvas的dataURL并设置到模态框图片
-        const dataURL = canvas.toDataURL('image/png', 1.0);
-        modalImage.src = dataURL;
-        
-        // 显示模态框
-        imageModal.classList.add('active');
-        // 禁止背景滚动
-        document.body.style.overflow = 'hidden';
+        if (previewPlaceholder.classList.contains('hidden')) { // 已生成图片时触发
+          // 获取Canvas的dataURL并设置到模态框图片
+          const dataURL = canvas.toDataURL('image/png', 1.0);
+          modalImage.src = dataURL;
+          
+          // 显示模态框
+          imageModal.classList.add('active');
+          // 禁止背景滚动
+          document.body.style.overflow = 'hidden';
+        }
       });
       
       // 关闭模态框
@@ -699,7 +677,7 @@
       // 生成图片后显示提示文字
       generateBtn.addEventListener('click', () => {
         setTimeout(() => {
-          if (!downloadBtn.disabled) {
+          if (previewPlaceholder.classList.contains('hidden')) {
             previewTooltip.classList.remove('hidden');
           }
         }, 200);
@@ -902,7 +880,6 @@
       // 更新UI状态
       previewPlaceholder.classList.add('hidden');
       previewSuccess.classList.remove('hidden');
-      downloadBtn.disabled = false;
       previewTooltip.classList.remove('hidden'); // 显示点击提示
     }
     
@@ -922,55 +899,6 @@
         generateBtn.classList.remove('animate-pulse');
       }, 150);
     });
-    
-    // 下载按钮点击事件（保持原有逻辑）
-    downloadBtn.addEventListener('click', () => {
-      if (!isBrowserCompatible) {
-        alert('您的浏览器不支持下载功能，请升级！');
-        return;
-      }
-      
-      try {
-        const link = document.createElement('a');
-        const timestamp = new Date().getTime();
-        link.download = `默格小屏助手_${timestamp}.png`;
-        document.body.appendChild(link);
-        
-        // 关键优化7：使用高质量PNG导出
-        const dataURL = canvas.toDataURL('image/png', 1.0);
-        link.href = dataURL;
-        
-        // Safari兼容处理
-        if (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome')) {
-          const blob = dataURLToBlob(dataURL);
-          const url = URL.createObjectURL(blob);
-          link.href = url;
-          link.click();
-          URL.revokeObjectURL(url);
-        } else {
-          link.click();
-        }
-        
-        document.body.removeChild(link);
-        alert('图片下载成功！微信用户也可点击预览图长按保存');
-      } catch (error) {
-        console.error('下载失败：', error);
-        alert('图片下载失败，请点击预览图后长按保存（微信适用）！');
-      }
-    });
-    
-    // dataURL转Blob（兼容Safari）
-    function dataURLToBlob(dataURL) {
-      const arr = dataURL.split(',');
-      const mime = arr[0].match(/:(.*?);/)[1];
-      const bstr = atob(arr[1]);
-      let n = bstr.length;
-      const u8arr = new Uint8Array(n);
-      while (n--) {
-        u8arr[n] = bstr.charCodeAt(n);
-      }
-      return new Blob([u8arr], { type: mime });
-    }
     
     // 窗口大小变化重新绘制
     window.addEventListener('resize', () => {
